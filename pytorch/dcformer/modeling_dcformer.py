@@ -200,7 +200,7 @@ class DynamicWeightProjection(nn.Module):
             and Wq2 ∈ R (I×I)
             , where I = 2HR. We apply RMSNorm without scaling to wq1 along the number-of-head
             dim before multiplying it with A:ij to stabilize training:
-            wq1, wq2 = Chunk(GELU(QiWq1)Wq2, dim = 1)
+            wq1, wq2 = Chunk(GELU(Qi Wq1)Wq2, dim = 1)
             wq1 = Rmsnorm(Reshape(wq1,(H, R)), dim = 0)
             wq2 = Reshape(wq2,(R, H))
             (5)
