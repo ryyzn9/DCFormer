@@ -191,6 +191,31 @@ class DCFormerBlock(nn.Module):
         return out
 
 class DynamicWeightProjection(nn.Module):
+     """
+            To compute the dynamic projection weights wq1 and wq2
+            from Qi
+            , we use an FFN with a single hidden layer
+            and GELU activation function, parameterized by Wq1 ∈
+            R (Dm×I)
+            and Wq2 ∈ R (I×I)
+            , where I = 2HR. We apply RMSNorm without scaling to wq1 along the number-of-head
+            dim before multiplying it with A:ij to stabilize training:
+            wq1, wq2 = Chunk(GELU(QiWq1)Wq2, dim = 1)
+            wq1 = Rmsnorm(Reshape(wq1,(H, R)), dim = 0)
+            wq2 = Reshape(wq2,(R, H))
+            (5)
+            To compute the dynamic gating weight wqg from Qi
+            , we
+            simply use a linear projection parameterized by Wqg ∈
+            R
+            Dm×H, followed by a tanh nonlinearity:
+            wqg = tanh(QiWqg) (6)
+            There are also two symmetric branches for Kj following the
+            same computation as Qi
+    
+
+
+     """
 
     def __init__(self, num_heads=32, num_groups=1, residual=True, query_input_dim=4096, dynamic_squeeze_ratio=16, dynamic_w_hidden_dim=128,dtype=torch.float16,use_sw=False):
         super().__init__()
