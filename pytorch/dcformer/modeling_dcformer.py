@@ -207,9 +207,8 @@ class DynamicWeightProjection(nn.Module):
             To compute the dynamic gating weight wqg from Qi
             , we
             simply use a linear projection parameterized by Wqg ∈
-            R
-            Dm×H, followed by a tanh nonlinearity:
-            wqg = tanh(QiWqg) (6)
+            R (Dm×H), followed by a tanh nonlinearity:
+            wqg = tanh(Qi Wqg) (6)
             There are also two symmetric branches for Kj following the
             same computation as Qi
     
