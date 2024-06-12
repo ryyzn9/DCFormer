@@ -483,6 +483,7 @@ class DCMHAttention(nn.Module):
                     pre_qdd, pre_kdd, post_qdd, post_kdd = qkdd.unbind(2)  # BT(2{*2})N->[BTN]*4
 
                 y = torch.zeros(B, N, T, D).to(q.device, dtype=torch.float16)
+                #apply musk
                 for i in range(T // self.q_chunk_size):
                     start, stop = i * self.q_chunk_size, (i + 1) * self.q_chunk_size
                     kv_start = max(0, stop - self.q_chunk_size -self.window_size)
@@ -496,6 +497,8 @@ class DCMHAttention(nn.Module):
                     _o = _atten_context(_q, _k, _v, _atten_mask, _pre_proj_dw_args, _post_proj_dw_args)
                     y[:,:,start:stop] = _o
             else:
+                #apply musk
+
                 y = torch.zeros(B, N, T, D).to(q.device, dtype=torch.float16)
                 for i in range(T // self.q_chunk_size):
                     start, stop = i * self.q_chunk_size, (i + 1) * self.q_chunk_size
@@ -506,6 +509,7 @@ class DCMHAttention(nn.Module):
                     _pre_proj_dw_args, _post_proj_dw_args = None, None
                     _o = _atten_context(_q, _k, _v, _atten_mask, _pre_proj_dw_args, _post_proj_dw_args)
                     y[:,:,start:stop] = _o
+                    
         else: # inference
             if seqlen == 1: # one-token generation
                 k_mask = mask if self.window_size is None else mask[:,:,:,:self.kv_cache.seq_length]
