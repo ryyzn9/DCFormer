@@ -272,6 +272,27 @@ class DynamicWeightProjection(nn.Module):
         dd = self.dw_activation(dd) # tanh() //tanh(Q @ W_qg) and  tanh(K @ W_kg) together as K and Q is dd maybe
         pre_qdd, pre_kdd, post_qdd, post_kdd = torch.split(dd, dd.shape[-1] // 4, dim=-1) # BTG(4N)->[BTGN]*4 
         #|pre-o_qg pre-o_kg  post-o_qg post-o_kg will be after matmul with a.
+
+        # 15 def compose(
+        # 16 a, # B * H * T * S
+        # 17 Q, # B * T * D_m
+        # 18 K, # B * S * D_m
+        # 19 theta
+        # 20 ):
+        # 21 W_q1, W_q2, W_k1, W_k2 = theta.W_q1, theta.W_q2, theta.W_k1, theta.W_k2
+        # 22 W_qg, W_kg = theta.W_qg, theta.W_kg # D_m * H
+        
+        # 24 dw1, dw2 = dw_proj(Q, W_q1, W_q2)
+        # 25 h = einsum('BHTS,BTRH->BRTS', a, dw1)
+        # 26 o_qp = einsum('BRTS,BTRH->BHTS', h, dw2)
+        # 28 dw1, dw2 = dw_proj(K, W_k1, W_k2)
+        # 29 h = einsum('BHTS,BSRH->BRTS', a, dw1)
+        # 30 o_kp = einsum('BRTS,BSRH->BHTS', h, dw2)
+        # 32 o_qg = einsum('BHTS,BTH->BHTS', a, tanh(Q @ W_qg))
+        # 33 o_kg = einsum('BHTS,BSH->BHTS', a, tanh(K @ W_kg))
+        # 34 return a + o_qp + o_kp + o_qg + o_kg
+        # 31
+
         pre_dw_args = (pre_qw1, pre_qw2, pre_kw1, pre_kw2, pre_qdd, pre_kdd)
         post_dw_args = (post_qw1, post_qw2, post_kw1, post_kw2, post_qdd, post_kdd)
         if gen_cache: # generate KW cache
