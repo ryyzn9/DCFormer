@@ -255,16 +255,14 @@ class DynamicWeightProjection(nn.Module):
         w1, w2 = torch.split(torch.einsum('BTGCK,GCKIM->BTGCIM', dw_hidden, self.qkw), self.qkw.shape[-2]//2, dim=-2) #BTGC(2I)M -> [BTGCIM] * 2
         w1 = self.dw1_norm(w1) # BTGCIM 
         
-                    # 4 def dw_proj(
-                    # 5 X, # B * T * D_m
-                    # 6 W_1, # D_m * (H*R*2)
-                    # 7 W_2 # (H*R*2) * (H*R*2)
-                    # 8 ):
-                    # 9 dw = gelu(X @ W_1) @ W_2
-                    # 10 dw1, dw2 = dw.chunk(2, dim=-1)
-                    # 11 dw1 = rmsnorm(rearrange(dw1, 'BT(RH)->BTRH'), dim=-1)
-                    # 12 dw2 = rearrange(dw2, 'BT(RH)->BTRH')
-                    # 13 return dw1, dw2
+            # def dw_proj(X, W_1, W_2):
+            # # X: B * T * D_m, W_1: D_m * (H*R*2), W_2: (H*R*2) * (H*R*2)
+            # dw = gelu(X @ W_1) @ W_2
+            # dw1, dw2 = dw.chunk(2, dim=-1)
+            # dw1 = rmsnorm(rearrange(dw1, 'BT(RH)->BTRH'), dim=-1)
+            # dw2 = rearrange(dw2, 'BT(RH)->BTRH')
+            # return dw1, dw2
+
 
         pre_qw1, pre_kw1, post_qw1, post_kw1 = unbind(w1, 4, dim=3) # BTG4IM->[BTGIM]*4
         pre_qw2, pre_kw2, post_qw2, post_kw2 = unbind(w2, 4, dim=3) 
