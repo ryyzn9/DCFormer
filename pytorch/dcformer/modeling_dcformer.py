@@ -271,17 +271,7 @@ class DynamicWeightProjection(nn.Module):
         pre_qdd, pre_kdd, post_qdd, post_kdd = torch.split(dd, dd.shape[-1] // 4, dim=-1) # BTG(4N)->[BTGN]*4 
         #|pre-o_qg pre-o_kg  post-o_qg post-o_kg will be after matmul with a.
 
-    # def compose(a, Q, K, theta):
-    # # a: B * H * T * S, Q: B * T * D_m, K: B * S * D_m
-    # W_q1, W_q2, W_k1, W_k2 = theta.W_q1, theta.W_q2, theta.W_k1, theta.W_k2
-    # W_qg, W_kg = theta.W_qg, theta.W_kg  # D_m * H
-    # dw1, dw2 = dw_proj(Q, W_q1, W_q2)
-    # o_qp = einsum('BRTS,BTRH->BHTS', einsum('BHTS,BTRH->BRTS', a, dw1), dw2)
-    # dw1, dw2 = dw_proj(K, W_k1, W_k2)
-    # o_kp = einsum('BRTS,BSRH->BHTS', einsum('BHTS,BSRH->BRTS', a, dw1), dw2)
-    # o_qg = einsum('BHTS,BTH->BHTS', a, tanh(Q @ W_qg))
-    # o_kg = einsum('BHTS,BSH->BHTS', a, tanh(K @ W_kg))
-    # return a + o_qp + o_kp + o_qg + o_kg
+    
 
         pre_dw_args = (pre_qw1, pre_qw2, pre_kw1, pre_kw2, pre_qdd, pre_kdd)
         post_dw_args = (post_qw1, post_qw2, post_kw1, post_kw2, post_qdd, post_kdd)
@@ -368,16 +358,19 @@ class CrossHeadProjection(nn.Module):
                     ret = ret + dout
             else:
                 # apply qw and kw (BTGIN)
-                x_inter = torch.einsum('BGNTS, BTGIN->BGTSI', inputs, qw1)
-                qw_out = torch.einsum('BGTSI, BTGIN->BGNTS', x_inter, qw2)
-                ret = ret + qw_out
-                x_inter = torch.einsum('BGNTS, BSGIN->BGTSI', inputs, kw1)
-                kw_out = torch.einsum('BGTSI, BSGIN->BGNTS', x_inter, kw2)
-                ret = ret + kw_out
+                x_inter = torch.einsum('BGNTS, BTGIN->BGTSI', inputs, qw1) #h = einsum('BHTS,BTRH->BRTS', a, dw1) 
 
+                qw_out = torch.einsum('BGTSI, BTGIN->BGNTS', x_inter, qw2)# o_qp = einsum('BRTS,BTRH->BHTS', h, dw2)
+                                                                             
+                ret = ret + qw_out
+                x_inter = torch.einsum('BGNTS, BSGIN->BGTSI', inputs, kw1) #h = einsum('BHTS,BSRH->BRTS', a, dw1)
+                kw_out = torch.einsum('BGTSI, BSGIN->BGNTS', x_inter, kw2) #  o_kp = einsum('BRTS,BSRH->BHTS', h, dw2)
+
+                ret = ret + kw_out
                 # apply qdd(BTGN) and kdd(BSGN)
-                ret = ret + torch.einsum('BGNTS, BTGN->BGNTS', inputs, qdd)
-                ret = ret + torch.einsum('BGNTS, BSGN->BGNTS', inputs, kdd)
+                ret = ret + torch.einsum('BGNTS, BTGN->BGNTS', inputs, qdd)# o_qg = einsum('BHTS,BTH->BHTS', a, tanh(Q @ W_qg))
+
+                ret = ret + torch.einsum('BGNTS, BSGN->BGNTS', inputs, kdd)# o_kg = einsum('BHTS,BSH->BHTS', a, tanh(K @ W_kg))
             ret = ret.squeeze(1) # BGNTS->BNTS    
         return ret  
 
