@@ -282,17 +282,12 @@ class DynamicWeightProjection(nn.Module):
         # 21 W_q1, W_q2, W_k1, W_k2 = theta.W_q1, theta.W_q2, theta.W_k1, theta.W_k2
         # 22 W_qg, W_kg = theta.W_qg, theta.W_kg # D_m * H
         
-        # 24 dw1, dw2 = dw_proj(Q, W_q1, W_q2)
-        # 25 h = einsum('BHTS,BTRH->BRTS', a, dw1)
-        # 26 o_qp = einsum('BRTS,BTRH->BHTS', h, dw2)
-        # 28 dw1, dw2 = dw_proj(K, W_k1, W_k2)
-        # 29 h = einsum('BHTS,BSRH->BRTS', a, dw1)
-        # 30 o_kp = einsum('BRTS,BSRH->BHTS', h, dw2)
-        # 32 o_qg = einsum('BHTS,BTH->BHTS', a, tanh(Q @ W_qg))
-        # 33 o_kg = einsum('BHTS,BSH->BHTS', a, tanh(K @ W_kg))
-        # 34 return a + o_qp + o_kp + o_qg + o_kg
-        # 31
-
+        # 24 dw1, dw2 = dw_proj(Q, W_q1, W_q2)        # 25 h = einsum('BHTS,BTRH->BRTS', a, dw1)
+        # 26 o_qp = einsum('BRTS,BTRH->BHTS', h, dw2)  # 28 dw1, dw2 = dw_proj(K, W_k1, W_k2)
+        # 29 h = einsum('BHTS,BSRH->BRTS', a, dw1)     # 30 o_kp = einsum('BRTS,BSRH->BHTS', h, dw2)
+                                                        # 31 o_qg = einsum('BHTS,BTH->BHTS', a, tanh(Q @ W_qg))
+                                                        # 32 o_kg = einsum('BHTS,BSH->BHTS', a, tanh(K @ W_kg))
+                                                        # 33 return a + o_qp + o_kp + o_qg + o_kg
         pre_dw_args = (pre_qw1, pre_qw2, pre_kw1, pre_kw2, pre_qdd, pre_kdd)
         post_dw_args = (post_qw1, post_qw2, post_kw1, post_kw2, post_qdd, post_kdd)
         if gen_cache: # generate KW cache
