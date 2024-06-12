@@ -256,8 +256,8 @@ class DynamicWeightProjection(nn.Module):
         w1 = self.dw1_norm(w1) # BTGCIM
         pre_qw1, pre_kw1, post_qw1, post_kw1 = unbind(w1, 4, dim=3) # BTG4IM->[BTGIM]*4
         pre_qw2, pre_kw2, post_qw2, post_kw2 = unbind(w2, 4, dim=3) 
-        dd = torch.einsum('BTD,DGM->BTGM', query_vec, self.dd) # BTG(4M)
-        dd = self.dw_activation(dd)
+        dd = torch.einsum('BTD,DGM->BTGM', query_vec, self.dd) # BTG(4M) 
+        dd = self.dw_activation(dd) # tanh() //tanh(Q @ W_qg)
         pre_qdd, pre_kdd, post_qdd, post_kdd = torch.split(dd, dd.shape[-1] // 4, dim=-1) # BTG(4N)->[BTGN]*4
         pre_dw_args = (pre_qw1, pre_qw2, pre_kw1, pre_kw2, pre_qdd, pre_kdd)
         post_dw_args = (post_qw1, post_qw2, post_kw1, post_kw2, post_qdd, post_kdd)
